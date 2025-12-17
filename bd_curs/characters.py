@@ -1,4 +1,8 @@
-from core import Character, CritMixin
+# Импорты, которые работают и при запуске напрямую, и при запуске как пакет bd_curs
+try:
+    from core import Character, CritMixin
+except ImportError:
+    from .core import Character, CritMixin
 import random
 
 
@@ -35,6 +39,8 @@ class Mage(Character):
 class Archer(Character, CritMixin):
     def __init__(self, name):
         super().__init__(name, 100, 28, "Лучник")
+        self.mp = 40
+        self.max_mp = 40
         self.agility = 25
         CritMixin.__init__(self, crit_chance=0.35, crit_multiplier=2.2)
 

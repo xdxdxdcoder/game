@@ -1,14 +1,19 @@
-from main import Character
+# Импорт Character, работающий и при запуске напрямую, и как пакет bd_curs
+try:
+    from main import Character
+except ImportError:
+    from .main import Character
 import random
 from effects import PoisonEffect, ShieldEffect, StunEffect
 
 
 class Boss(Character):
     def __init__(self, name):
-        super().__init__(name, 400, 35, "Босс")
+        # Босс, сбалансированный под текущую пати: всё ещё опасный, но не «ваншотит» команду
+        super().__init__(name, 1700, 70, "Босс")
         self.special_attack_cooldown = 0
-        self.mp = 150
-        self.max_mp = 150
+        self.mp = 200
+        self.max_mp = 200
 
     def use_skill(self):
         skills = [
@@ -25,7 +30,8 @@ class Boss(Character):
             print(f"{self.name} использует Ядовитое дыхание!")
             for hero in self.heroes:
                 if hero.is_alive:
-                    poison = PoisonEffect(duration=3, damage_per_turn=12)
+                    # Чуть ослабленное отравление
+                    poison = PoisonEffect(duration=4, damage_per_turn=15)
                     hero.add_effect(poison)
             return "Все герои отравлены!"
         return "Недостаточно маны для навыка!"
@@ -33,7 +39,8 @@ class Boss(Character):
     def shield_wall(self):
         if self.mp >= 30:
             self.mp -= 30
-            shield = ShieldEffect(duration=3, shield_amount=50)
+            # Щит по‑прежнему полезен, но не такой мощный
+            shield = ShieldEffect(duration=3, shield_amount=60)
             self.add_effect(shield)
             return f"{self.name} создает магический щит!"
         return "Недостаточно маны для навыка!"
@@ -43,12 +50,13 @@ class Boss(Character):
         total_damage = 0
         for hero in self.heroes:
             if hero.is_alive:
-                damage = random.randint(20, 30)
+                # Чуть сниженный урон
+                damage = random.randint(35, 50)
                 actual_damage = hero.take_damage(damage)
                 total_damage += actual_damage
 
-                # Шанс оглушить
-                if random.random() < 0.3:
+                # Оглушение по‑прежнему опасно, но реже и короче
+                if random.random() < 0.4:
                     stun = StunEffect(duration=1)
                     hero.add_effect(stun)
                     print(f"  {hero.name} оглушен!")
