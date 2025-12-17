@@ -1,5 +1,10 @@
 import random
-from effects import PoisonEffect, ShieldEffect, StrengthBuffEffect
+
+# Импорт эффектов так, чтобы модуль можно было запускать и как скрипт, и как часть пакета bd_curs
+try:
+    from effects import PoisonEffect, ShieldEffect, StrengthBuffEffect
+except ImportError:
+    from .effects import PoisonEffect, ShieldEffect, StrengthBuffEffect
 
 
 class TurnOrder:
@@ -165,7 +170,10 @@ class Battle:
                 elif choice == "3":
                     if hasattr(hero, 'mp') and hero.mp >= 20:
                         if hero.role == "Маг":
-                            from effects import PoisonEffect
+                            try:
+                                from effects import PoisonEffect
+                            except ImportError:
+                                from .effects import PoisonEffect
                             poison = PoisonEffect(duration=2, damage_per_turn=10)
                             self.boss.add_effect(poison)
                             hero.mp -= 20

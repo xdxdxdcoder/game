@@ -26,7 +26,10 @@ class Mage(Character):
         # Маг может использовать магическую атаку
         if self.mp >= 15 and random.random() < 0.6:
             self.mp -= 15
-            from effects import PoisonEffect
+            try:
+                from effects import PoisonEffect
+            except ImportError:
+                from .effects import PoisonEffect
             poison = PoisonEffect(duration=3, damage_per_turn=8)
             target.add_effect(poison)
             damage = random.randint(20, 30)

@@ -51,7 +51,11 @@ class DamagePotion(Item):
         super().__init__("Зелье ярости", "Увеличивает урон на 15 на 3 хода")
 
     def use(self, user):
-        from effects import StrengthBuffEffect
+        # Импорт эффекта с учётом возможного запуска как пакета
+        try:
+            from effects import StrengthBuffEffect
+        except ImportError:
+            from .effects import StrengthBuffEffect
         effect = StrengthBuffEffect(duration=3, damage_bonus=15)
         user.add_effect(effect)
         return f"{user.name} использует {self.name}! Урон увеличен на 15!"
@@ -63,7 +67,10 @@ class PoisonDart(Item):
 
     def use(self, user):
         if hasattr(user, 'boss') and user.boss.is_alive:
-            from effects import PoisonEffect
+            try:
+                from effects import PoisonEffect
+            except ImportError:
+                from .effects import PoisonEffect
             effect = PoisonEffect(duration=3, damage_per_turn=8)
             user.boss.add_effect(effect)
             return f"{user.name} использует {self.name} на {user.boss.name}! {user.boss.name} отравлен!"

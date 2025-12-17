@@ -1,6 +1,12 @@
 import random
-from effects import Effect, PoisonEffect, ShieldEffect, StrengthBuffEffect
-from items import Inventory, HealthPotion, ManaPotion, DamagePotion
+
+# Импорты, которые работают и при запуске напрямую, и как пакет bd_curs
+try:
+    from effects import Effect, PoisonEffect, ShieldEffect, StrengthBuffEffect
+    from items import Inventory, HealthPotion, ManaPotion, DamagePotion
+except ImportError:
+    from .effects import Effect, PoisonEffect, ShieldEffect, StrengthBuffEffect
+    from .items import Inventory, HealthPotion, ManaPotion, DamagePotion
 
 
 class Character:
@@ -195,8 +201,13 @@ class Battle:
 
 
 def main():
-    from characters import Warrior, Mage, Archer, Healer
-    from boss import Boss
+    # Импорт героев и босса так, чтобы работало и при запуске файла напрямую, и как пакет
+    try:
+        from characters import Warrior, Mage, Archer, Healer
+        from boss import Boss
+    except ImportError:
+        from .characters import Warrior, Mage, Archer, Healer
+        from .boss import Boss
 
     print("ПАТИ ПРОТИВ БОССА")
     print("=" * 60)

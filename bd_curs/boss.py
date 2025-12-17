@@ -3,8 +3,14 @@ try:
     from main import Character
 except ImportError:
     from .main import Character
+
 import random
-from effects import PoisonEffect, ShieldEffect, StunEffect
+
+# Импорт эффектов так, чтобы работало и как скрипт, и как пакет
+try:
+    from effects import PoisonEffect, ShieldEffect, StunEffect
+except ImportError:
+    from .effects import PoisonEffect, ShieldEffect, StunEffect
 
 
 class Boss(Character):

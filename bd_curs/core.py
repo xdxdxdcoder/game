@@ -83,7 +83,11 @@ class Character(Human):
 
     def __init__(self, name, hp, damage, role="Персонаж"):
         super().__init__(name, hp, damage, role)
-        from items import Inventory
+        # Импорт с учётом запуска как пакета bd_curs
+        try:
+            from items import Inventory
+        except ImportError:
+            from .items import Inventory
         self.inventory = Inventory()
 
     def use_item(self, item_name):

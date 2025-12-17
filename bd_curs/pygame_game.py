@@ -10,11 +10,13 @@ try:
     from boss import Boss
     from items import HealthPotion, ManaPotion, DamagePotion
     from effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect, StunEffect
-except ImportError:
+    import db as db_module
+except ImportError:  # пакетный импорт
     from .characters import Warrior, Mage, Archer, Healer
     from .boss import Boss
     from .items import HealthPotion, ManaPotion, DamagePotion
     from .effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect, StunEffect
+    from . import db as db_module
 
 # Окно поменьше по высоте, чтобы кнопки не перекрывались доком
 WIDTH, HEIGHT = 1400, 600
@@ -122,6 +124,9 @@ class PygameBattle:
         # Флаги для отслеживания проигранных звуков окончания боя
         self.victory_sound_played = False
         self.defeat_sound_played = False
+
+        # Флаг, чтобы в БД записывался только один результат боя
+        self._db_result_saved = False
 
         # Краткие описания умений героев (для подсказки на экране)
         self.skill_descriptions = {
@@ -358,6 +363,8 @@ class PygameBattle:
             if self.state != "battle_over":
                 self.state = "battle_over"
                 self.add_log("ПОБЕДА! Босс повержен!")
+                # Сохраняем результат боя в БД (если настроено подключение)
+                self._save_battle_result_to_db("victory")
             # Проигрываем звук победы только один раз
             if not self.victory_sound_played and "victory" in self.sounds:
                 try:
@@ -375,6 +382,8 @@ class PygameBattle:
             if self.state != "battle_over":
                 self.state = "battle_over"
                 self.add_log("ПОРАЖЕНИЕ... Босс одолел героев")
+                # Сохранение результата поражения
+                self._save_battle_result_to_db("defeat")
 
             # Проигрываем звук поражения - проверяем каждый раз, но проигрываем только один раз
             if not self.defeat_sound_played:
@@ -392,6 +401,33 @@ class PygameBattle:
                     # Если звука нет, все равно помечаем как проигранный
                     print("Звук defeat.wav не найден!")
                     self.defeat_sound_played = True
+
+    def _save_battle_result_to_db(self, result: str):
+        """
+        Пытается сохранить результат боя в удалённую БД.
+        Ошибки подключения выводятся в консоль, но игру не ломают.
+        """
+        if self._db_result_saved:
+            return
+
+        # Подстраховка: проверяем, что модуль БД действительно есть
+        if db_module is None:
+            return
+
+        try:
+            # На всякий случай инициализируем таблицу (CREATE TABLE IF NOT EXISTS ...)
+            db_module.init_db()
+            db_module.save_battle_result(
+                result=result,
+                boss_name=getattr(self.boss, "name", "Босс"),
+                round_count=self.round,
+                heroes=self.heroes,
+            )
+            self._db_result_saved = True
+            print(f"Результат боя сохранён в БД: {result}")
+        except Exception as e:
+            # Для учебного проекта достаточно вывести ошибку в консоль
+            print(f"Не удалось сохранить результат боя в БД: {e}")
 
     def hero_attack(self):
         hero = self.get_current_hero()
