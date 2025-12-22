@@ -9,13 +9,13 @@ try:
     from characters import Warrior, Mage, Archer, Healer
     from boss import Boss
     from items import HealthPotion, ManaPotion, DamagePotion
-    from effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect, StunEffect
+    from effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect
     import db as db_module
 except ImportError:  # пакетный импорт
     from .characters import Warrior, Mage, Archer, Healer
     from .boss import Boss
     from .items import HealthPotion, ManaPotion, DamagePotion
-    from .effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect, StunEffect
+    from .effects import PoisonEffect, StrengthBuffEffect, RegenerationEffect
     from . import db as db_module
 
 # Окно поменьше по высоте, чтобы кнопки не перекрывались доком
@@ -1008,17 +1008,24 @@ class PygameBattle:
         self.draw_hp_bar(text_x, y, rect.width - 2 * padding, 10, hp, max_hp)
         y += 14
 
-        # Эффекты кратко (обрезаем, чтобы не вылезали за пределы карты, размещаем после HP)
-        effects = getattr(char, 'effects', [])
-        if effects:
-            eff_str = ", ".join(
-                [f"{getattr(e, 'name', 'Эффект')}({getattr(e, 'duration', 0)})" for e in effects if e is not None])
-            max_width = rect.width - 2 * padding
-            eff_surf = self._render_trimmed(eff_str, self.tiny_font, max_width)
-            if eff_surf:
-                # Размещаем эффекты после полоски HP с отступом
-                self.screen.blit(eff_surf, (text_x, y))
-        elif not char.is_alive:
+        # Эффекты кратко (каждый эффект на новой строке, размещаем после HP)
+        # Для босса эффекты не отображаем
+        role = getattr(char, 'role', '')
+        if role != "Босс":
+            effects = getattr(char, 'effects', [])
+            if effects:
+                max_width = rect.width - 2 * padding
+                line_height = self.tiny_font.get_height() + 2
+                for eff in effects:
+                    if eff is not None:
+                        eff_str = f"{getattr(eff, 'name', 'Эффект')}({getattr(eff, 'duration', 0)})"
+                        eff_surf = self._render_trimmed(eff_str, self.tiny_font, max_width)
+                        if eff_surf:
+                            # Размещаем эффекты после полоски HP с отступом, каждый на новой строке
+                            self.screen.blit(eff_surf, (text_x, y))
+                            y += line_height
+
+        if not char.is_alive:
             status = self.tiny_font.render("МЁРТВ", True, (255, 180, 180))
             self.screen.blit(status, (text_x, y))
 
