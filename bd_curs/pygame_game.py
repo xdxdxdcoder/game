@@ -132,7 +132,7 @@ class PygameBattle:
         self.skill_descriptions = {
             "Воин": "Боевой крик: усиливает урон всей команды на 3 хода (25 MP).",
             "Маг": "Магия яда: урон и отравление босса на 3 хода (20 MP).",
-            "Лучник": "Оглушающий выстрел: урон и шанс оглушить босса (25 MP).",
+            "Лучник": "Мощный выстрел: увеличенный урон боссу (25 MP).",
             "Лекарь": "Молитва исцеления: массовое лечение (25 MP).",
         }
 
@@ -333,8 +333,8 @@ class PygameBattle:
         # Проверяем поражение перед переходом к следующему герою
         self.check_battle_end()
         if self.state == "battle_over":
-                return
-        
+            return
+
         # Список живых героев, которые ещё не ходили в этом раунде
         remaining = [h for h in self.heroes if h.is_alive and h not in self.heroes_played_this_round]
 
@@ -352,8 +352,8 @@ class PygameBattle:
         # Проверяем поражение еще раз перед ходом босса
         self.check_battle_end()
         if self.state == "battle_over":
-                return
-        
+            return
+
         self.heroes_played_this_round.clear()
         self.state = "boss_turn"
 
@@ -526,14 +526,14 @@ class PygameBattle:
         return True
 
     def _skill_archer_stun_shot(self, hero):
-        """Лучник: оглушающий выстрел — урон и шанс оглушить босса."""
+        """Лучник: мощный выстрел — наносит увеличенный урон боссу."""
         mp_cost = 25
         # У лучника может не быть маны, поэтому добавляем её при первом использовании
         if not hasattr(hero, "mp"):
             hero.mp = 40
             hero.max_mp = 40
         if hero.mp < mp_cost:
-            self.add_log(f"{hero.name} не хватает маны для оглушающего выстрела.")
+            self.add_log(f"{hero.name} не хватает маны для мощного выстрела.")
             return False
         if not self.boss or not self.boss.is_alive:
             return False
@@ -542,22 +542,13 @@ class PygameBattle:
         damage = random.randint(hero.damage + 5, hero.damage + 20)
         actual_damage = self.boss.take_damage(damage)
 
-        stunned = False
-        if random.random() < 0.5:
-            self.boss.add_effect(StunEffect(duration=1))
-            stunned = True
-
-        msg = f"{hero.name} выпускает ОГЛУШАЮЩИЙ ВЫСТРЕЛ и наносит {actual_damage} урона."
-        if stunned:
-            msg += f" {self.boss.name} оглушён и может пропустить ход!"
+        msg = f"{hero.name} выпускает МОЩНЫЙ ВЫСТРЕЛ и наносит {actual_damage} урона."
         self.add_log(msg)
 
-        # Визуальный эффект: яркий жёлтый снаряд и отметка оглушения
+        # Визуальный эффект: яркий жёлтый снаряд
         self.spawn_projectile(from_char=hero, to_char=self.boss, color=(255, 230, 120))
         bx, by = self.get_model_pos(self.boss)
         self.add_float_text(bx, by - 70, f"-{actual_damage}", (255, 220, 120), size_mult=1.1)
-        if stunned:
-            self.add_float_text(bx, by - 100, "ОГЛУШЕН", (255, 200, 200), size_mult=0.9)
         return True
 
     def _skill_healer_mass_heal(self, hero):
@@ -666,24 +657,6 @@ class PygameBattle:
             return
 
         self.add_log(f"--- Ход босса {self.boss.name} ---")
-
-        # Если босс оглушен, он пропускает ход, но раунд всё равно должен корректно завершиться
-        stun_effects = [eff for eff in getattr(self.boss, "effects", []) if getattr(eff, "name", "") == "Оглушение"]
-        if stun_effects:
-            self.add_log(f"{self.boss.name} оглушен и пропускает ход!")
-
-            # Проверяем окончание боя и передаём ход героям, как при обычном завершении хода босса
-            self.check_battle_end()
-            if self.state != "battle_over":
-                self.heroes_played_this_round.clear()
-                self.state = "player_turn"
-                # Первый живой герой начинает новый раунд
-                for i, h in enumerate(self.heroes):
-                    if h.is_alive:
-                        self.current_hero_index = i
-                        break
-                self.round += 1
-            return
 
         # Выбор действия (похоже на текстовую версию)
         if self.boss_phase2:
@@ -888,7 +861,7 @@ class PygameBattle:
     def update(self, dt):
         """Обновление анимаций."""
         self.time += dt
-        
+
         # Проверяем окончание боя каждый кадр (на случай, если герои умирают от эффектов)
         if self.state != "battle_over":
             self.check_battle_end()
@@ -1455,7 +1428,6 @@ class PygameBattle:
 
         # Модальное окно предметов
         self.draw_item_modal()
-
 
     def draw_skill_hint(self):
         """Отдельное окошко с кратким описанием способности текущего героя."""

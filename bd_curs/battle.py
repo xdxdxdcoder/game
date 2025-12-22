@@ -238,12 +238,6 @@ class Battle:
     def boss_turn(self, log):
         log.log(f"\n--- Ход {self.boss.name} (Ловкость: {self.boss.agility}) ---")
 
-        # Проверяем, не оглушен ли босс
-        stun_effects = [eff for eff in self.boss.effects if eff.name == "Оглушение"]
-        if stun_effects:
-            log.log(f"{self.boss.name} оглушен и пропускает ход!")
-            return
-
         # Босс выбирает действие
         action_weights = {
             "attack": 0.5,
